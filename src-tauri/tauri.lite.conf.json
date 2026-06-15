@@ -1,0 +1,7 @@
+{
+  "productName": "Vellum Lite",
+  "identifier": "org.sciscale.vellum.lite",
+  "build": {
+    "beforeBuildCommand": "npm run build:lite"
+  }
+}

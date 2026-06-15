@@ -1,0 +1,79 @@
+name: Release
+
+# Triggered by pushing a tag matching v*. Creates a draft GitHub Release with
+# Windows (NSIS .exe + MSI), macOS (.dmg), and Linux (.AppImage + .deb) installers.
+# Review the draft, edit notes, then publish manually.
+#
+# Run manually via the Actions tab too — useful for testing the workflow without
+# tagging.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            edition: 'lite'
+            args: '--config src-tauri/tauri.lite.conf.json'
+          - platform: 'macos-latest'
+            edition: 'lite'
+            args: '--target universal-apple-darwin --config src-tauri/tauri.lite.conf.json'
+          # - platform: 'ubuntu-22.04'
+          #   edition: 'lite'
+          #   args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # macos-latest is arm64 — add x86_64 for universal builds when enabled.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.edition }}-${{ matrix.platform }}
+
+      # Linux-only: webkit2gtk + other build deps. No-op on Windows/macOS.
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build & package
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Tag name is taken from github.ref when triggered by a tag push.
+          # When triggered manually (workflow_dispatch), uses 'app-v__VERSION__'
+          # which the action substitutes with the version from tauri.conf.json.
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('app-v{0}', '__VERSION__') }}
+          releaseName: "Vellum ${{ github.ref_type == 'tag' && github.ref_name || '__VERSION__' }}"
+          releaseBody: "See the assets below to download and install."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
