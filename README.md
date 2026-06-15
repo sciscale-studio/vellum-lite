@@ -1,11 +1,33 @@
-# Vellum Lite
+<p align="center">
+  <img src="assets/logo-source.png" width="96" alt="Vellum" />
+</p>
 
-**The lightest Markdown reader** — a tiny, local, good-looking reader for the
-Markdown your AI agent just wrote. Open a file, scan the outline, read it on a
-calm page. No account, no cloud, no vault.
+<h1 align="center">Vellum Lite</h1>
 
-Vellum Lite is the free, open-source edition: a ~5 MB desktop app built with
-[Tauri](https://tauri.app) (Rust + React).
+<p align="center">
+  <b>The lightest Markdown reader</b> — tiny, local, and good-looking.<br/>
+  A ~5&nbsp;MB desktop reader for the Markdown your AI agent just wrote.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-2F50E8.svg" alt="License: GPL-3.0"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-555" alt="Platforms">
+  <img src="https://img.shields.io/badge/built%20with-Tauri%20%2B%20Rust%20%2B%20React-C18A3D" alt="Built with Tauri, Rust, React">
+  <a href="https://sciscale.org/vellum"><img src="https://img.shields.io/badge/download-sciscale.org%2Fvellum-15171C" alt="Download"></a>
+</p>
+
+<p align="center">
+  <a href="https://sciscale.org/vellum">
+    <img src="assets/demo.gif" width="760" alt="Vellum demo — open a local Markdown file, scan the outline, read it on a calm page" />
+  </a>
+  <br/>
+  <sub><a href="https://sciscale.org/vellum">▶ Watch the full demo and download at sciscale.org/vellum</a></sub>
+</p>
+
+---
+
+Vellum Lite is the **free, open-source** edition: open a local `.md`, scan the
+outline, read it on a calm page. No account, no cloud, no vault.
 
 ## Features
 
@@ -54,8 +76,10 @@ npm run build:lite
 
 [GPL-3.0](LICENSE) © 2026 Yue Li / SciScale.
 
-Originally forked from [scos-lab/markview](https://github.com/scos-lab/markview).
+Inspired by [Obsidian](https://obsidian.md).
 
 ---
 
-A [SciScale Studio](https://wow.sciscale.org) project.
+<p align="center">
+  A <a href="https://wow.sciscale.org">SciScale Studio</a> project.
+</p>
