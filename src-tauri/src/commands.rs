@@ -35,11 +35,35 @@ pub async fn path_exists(path: String) -> Result<bool, String> {
     Ok(Path::new(&path).exists())
 }
 
+/// Extensions a Markdown *reader* must never launch from an in-document link.
+/// A malicious `.md` could otherwise point a link at a local executable or
+/// script and run it on click. We refuse these; the user can still launch them
+/// from their own file manager if they trust the file.
+fn is_unsafe_to_launch(path: &Path) -> bool {
+    const BLOCKED: &[&str] = &[
+        "exe", "msi", "msix", "bat", "cmd", "com", "ps1", "psm1", "vbs", "vbe",
+        "js", "jse", "wsf", "wsh", "scr", "hta", "cpl", "jar", "reg", "lnk",
+        "inf", "scf", "pif", "gadget", "sh", "command", "app", "pkg", "dmg",
+        "run", "bin", "deb", "rpm", "appimage", "desktop",
+    ];
+    path.extension()
+        .and_then(|e| e.to_str())
+        .map(|e| BLOCKED.contains(&e.to_ascii_lowercase().as_str()))
+        .unwrap_or(false)
+}
+
 #[tauri::command]
 pub async fn open_local_path(path: String) -> Result<(), String> {
     let path = PathBuf::from(path.trim());
     if !path.exists() {
         return Err(format!("path does not exist: {}", path.display()));
+    }
+    if is_unsafe_to_launch(&path) {
+        return Err(format!(
+            "Refused to launch an executable from a document link: {}. \
+             Open it from your file manager if you trust it.",
+            path.display()
+        ));
     }
     open_local_path_impl(&path)
 }
@@ -164,12 +188,16 @@ pub async fn save_markdown_dialog(
 pub async fn open_file_dialog(app: AppHandle) -> Result<Option<FileResult>, String> {
     let (tx, rx) = std::sync::mpsc::channel();
     app.dialog().file().add_filter("Markdown", &["md", "mdx", "markdown"]).pick_file(move |file_path| {
-        tx.send(file_path).unwrap();
+        let _ = tx.send(file_path);
     });
 
     if let Ok(Some(file_path)) = rx.recv() {
-        let path_str = file_path.into_path().unwrap().to_string_lossy().to_string();
-        let content = fs::read_to_string(&path_str).unwrap_or_default();
+        let path = file_path
+            .into_path()
+            .map_err(|e| format!("resolve picked path: {e}"))?;
+        let path_str = path.to_string_lossy().to_string();
+        let content = fs::read_to_string(&path_str)
+            .map_err(|e| format!("read {path_str}: {e}"))?;
         Ok(Some(FileResult {
             path: path_str,
             content,
@@ -406,11 +434,11 @@ fn set_default_macos_extension(extension: &str, bundle_id: &str) -> Result<(), S
     }
 }
 
-/// Register MarkView as the default handler for .md/.mdx/.markdown on Windows.
+/// Register Vellum as the default handler for .md/.mdx/.markdown on Windows.
 ///
 /// Writes to HKCU (no admin required):
 /// 1. ProgID with shell\open\command pointing to current exe
-/// 2. OpenWithProgids entries so MarkView appears in "Open With"
+/// 2. OpenWithProgids entries so Vellum appears in "Open With"
 /// 3. RegisteredApplications + Capabilities for Windows Settings integration
 /// 4. Notifies the shell so Explorer picks up the change immediately
 #[cfg(target_os = "windows")]
@@ -422,12 +450,12 @@ fn set_default_windows() -> Result<(), String> {
         .map_err(|e| format!("current_exe: {e}"))?;
     let exe_str = exe.to_string_lossy().to_string();
     let open_cmd = format!("\"{}\" \"%1\"", exe_str);
-    let prog_id = "MarkView.Markdown";
+    let prog_id = "Vellum.Markdown";
     let extensions = [".md", ".mdx", ".markdown"];
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
 
-    // 1. Create ProgID: HKCU\Software\Classes\MarkView.Markdown
+    // 1. Create ProgID: HKCU\Software\Classes\Vellum.Markdown
     let (prog_key, _) = hkcu
         .create_subkey(format!("Software\\Classes\\{}", prog_id))
         .map_err(|e| format!("create ProgID: {e}"))?;
@@ -456,7 +484,7 @@ fn set_default_windows() -> Result<(), String> {
 
     // 2. Register for each extension
     for ext in extensions {
-        // Set OpenWithProgids so MarkView appears in "Open with" menu
+        // Set OpenWithProgids so Vellum appears in "Open with" menu
         let (owp_key, _) = hkcu
             .create_subkey(format!("Software\\Classes\\{}\\OpenWithProgids", ext))
             .map_err(|e| format!("create OpenWithProgids for {ext}: {e}"))?;
@@ -486,10 +514,10 @@ fn set_default_windows() -> Result<(), String> {
 
     // 3. Register as a "Registered Application" for Windows Settings integration
     let (cap_key, _) = hkcu
-        .create_subkey("Software\\MarkView\\Capabilities")
+        .create_subkey("Software\\Vellum\\Capabilities")
         .map_err(|e| format!("create Capabilities: {e}"))?;
     cap_key
-        .set_value("ApplicationName", &"MarkView - Markdown Reader")
+        .set_value("ApplicationName", &"Vellum - Markdown Reader")
         .map_err(|e| format!("set ApplicationName: {e}"))?;
     cap_key
         .set_value("ApplicationDescription", &"A clean, fast Markdown reader for Windows")
@@ -508,7 +536,7 @@ fn set_default_windows() -> Result<(), String> {
         .create_subkey("Software\\RegisteredApplications")
         .map_err(|e| format!("create RegisteredApplications: {e}"))?;
     reg_apps
-        .set_value("MarkView", &"Software\\MarkView\\Capabilities")
+        .set_value("Vellum", &"Software\\Vellum\\Capabilities")
         .map_err(|e| format!("set RegisteredApplications: {e}"))?;
 
     // 4. Notify the shell that associations have changed

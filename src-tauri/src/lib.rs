@@ -91,7 +91,7 @@ pub fn run() {
                 }
             }
             #[cfg(feature = "devtools")]
-            if std::env::var("MARKVIEW_DEVTOOLS").is_ok() {
+            if std::env::var("VELLUM_DEVTOOLS").is_ok() {
                 if let Some(window) = app.get_webview_window("main") {
                     window.open_devtools();
                 }
