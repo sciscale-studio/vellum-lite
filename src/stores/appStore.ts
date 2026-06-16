@@ -37,6 +37,7 @@ export interface AppState {
   searchQuery: string;
   searchMatches: number;
   currentMatch: number;
+  searchCaseSensitive: boolean;
   showSetDefault: boolean;
 
   // Tab actions
@@ -55,6 +56,7 @@ export interface AppState {
   setSearchQuery: (query: string) => void;
   setSearchMatches: (count: number) => void;
   setCurrentMatch: (index: number) => void;
+  setSearchCaseSensitive: (on: boolean) => void;
   setShowSetDefault: (show: boolean) => void;
 }
 
@@ -87,6 +89,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   searchQuery: '',
   searchMatches: 0,
   currentMatch: 0,
+  searchCaseSensitive: false,
   showSetDefault: false,
 
   addTab: (path, content) => {
@@ -171,5 +174,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSearchMatches: (count) => set({ searchMatches: count }),
   setCurrentMatch: (index) => set({ currentMatch: index }),
+  setSearchCaseSensitive: (on) => set({ searchCaseSensitive: on }),
   setShowSetDefault: (show) => set({ showSetDefault: show }),
 }));

@@ -176,6 +176,7 @@ export default function MarkdownView({ loadFile }: MarkdownViewProps) {
   const renderedHTML = useAppStore((s) => s.renderedHTML);
   const rawMarkdown = useAppStore((s) => s.rawMarkdown);
   const searchQuery = useAppStore((s) => s.searchQuery);
+  const searchCaseSensitive = useAppStore((s) => s.searchCaseSensitive);
   const currentMatch = useAppStore((s) => s.currentMatch);
   const currentFile = useAppStore((s) => s.currentFile);
   const theme = useAppStore((s) => s.theme);
@@ -403,7 +404,7 @@ export default function MarkdownView({ loadFile }: MarkdownViewProps) {
 
     let count = 0;
     const escaped = escapeRegex(searchQuery);
-    const regex = new RegExp(escaped, 'gi');
+    const regex = new RegExp(escaped, searchCaseSensitive ? 'g' : 'gi');
 
     // Split HTML into tags and text, only highlight in text segments
     const parts = renderedHTML.split(/(<[^>]*>)/);
@@ -417,7 +418,7 @@ export default function MarkdownView({ loadFile }: MarkdownViewProps) {
     }).join('');
 
     return { displayHTML: highlighted, matchCount: count };
-  }, [renderedHTML, searchQuery, currentMatch]);
+  }, [renderedHTML, searchQuery, currentMatch, searchCaseSensitive]);
 
   // Sync match count to store
   useEffect(() => {

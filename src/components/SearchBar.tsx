@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Search, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../stores/appStore';
 
@@ -9,10 +9,11 @@ export default function SearchBar() {
     setSearchQuery,
     searchMatches,
     currentMatch,
-    setCurrentMatch
+    setCurrentMatch,
+    searchCaseSensitive,
+    setSearchCaseSensitive
   } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [caseSensitive, setCaseSensitive] = useState(false);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -62,8 +63,8 @@ export default function SearchBar() {
       )}
       <div className="flex items-center space-x-1 border-l border-[var(--border-color)] pl-2">
         <button
-          onClick={() => setCaseSensitive(!caseSensitive)}
-          className={`p-1 rounded text-xs font-medium ${caseSensitive ? 'bg-[var(--link-color)] text-white' : 'hover:bg-[var(--hover-bg)] text-gray-500'}`}
+          onClick={() => setSearchCaseSensitive(!searchCaseSensitive)}
+          className={`p-1 rounded text-xs font-medium ${searchCaseSensitive ? 'bg-[var(--link-color)] text-white' : 'hover:bg-[var(--hover-bg)] text-gray-500'}`}
           title="Match Case"
         >
           Aa
