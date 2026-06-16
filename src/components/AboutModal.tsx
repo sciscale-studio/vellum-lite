@@ -82,7 +82,7 @@ export default function AboutModal({ onClose }: AboutModalProps) {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              openUrl('https://github.com/Liyue2341/vellum/releases');
+              openUrl('https://sciscale.org/vellum');
             }}
             className="text-xs text-gray-500 mb-4 hover:text-[var(--link-color)] cursor-pointer transition-colors"
             title="Check for updates on GitHub"
@@ -137,10 +137,10 @@ export default function AboutModal({ onClose }: AboutModalProps) {
               <span className="text-gray-500">Source</span>
               <a
                 href="#"
-                onClick={(e) => { e.preventDefault(); openUrl('https://github.com/Liyue2341/vellum'); }}
+                onClick={(e) => { e.preventDefault(); openUrl('https://github.com/sciscale-studio/vellum-lite'); }}
                 className="text-blue-500 hover:underline cursor-pointer"
               >
-                github.com/Liyue2341/vellum
+                github.com/sciscale-studio/vellum-lite
               </a>
             </div>
           </div>
