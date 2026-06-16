@@ -78,6 +78,20 @@
   --tab-active-border: #A84B68;
 }
 
+/* highlight.js's github.css ships light-theme token colors. On the two dark
+   reading styles they collapse to near-zero contrast — the string navy
+   (#032f62) is all but invisible on the near-black code background. Re-map the
+   tokens to github-dark's palette for the dark themes only; the light styles
+   keep plain github. github.css lives in @layer(base), so these unlayered rules
+   win without needing !important. */
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs, .hljs-subst) { color: #c9d1d9; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-comment, .hljs-quote) { color: #8b949e; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-keyword, .hljs-doctag, .hljs-selector-tag, .hljs-literal, .hljs-formula) { color: #ff7b72; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-string, .hljs-regexp, .hljs-meta .hljs-string) { color: #a5d6ff; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-number, .hljs-built_in, .hljs-symbol, .hljs-bullet, .hljs-meta) { color: #79c0ff; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-title, .hljs-section, .hljs-title.function_, .hljs-title.class_) { color: #d2a8ff; }
+:is([data-theme='dark'], [data-theme='graphite']) :is(.hljs-attr, .hljs-variable, .hljs-template-variable, .hljs-type, .hljs-params, .hljs-name, .hljs-selector-id, .hljs-selector-class) { color: #ffa657; }
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
