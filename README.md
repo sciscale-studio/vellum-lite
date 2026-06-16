@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="https://sciscale.org/vellum">
-    <img src="assets/demo.gif" width="640" alt="Vellum demo — open a local Markdown file, scan the outline, read it on a calm page" />
+    <img src="assets/screencast.gif" width="640" alt="Vellum demo — open a local Markdown file, scan the outline, read it on a calm page" />
   </a>
   <br/>
   <sub><a href="https://sciscale.org/vellum">▶ Watch the full demo and download at sciscale.org/vellum</a></sub>
