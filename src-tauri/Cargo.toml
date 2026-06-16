@@ -1,6 +1,6 @@
 [package]
 name = "vellum"
-version = "0.5.7"
+version = "0.5.8"
 description = "Vellum — a lightweight Markdown reader"
 authors = ["Yue Li <armstrong@sciscale.org>"]
 edition = "2021"
