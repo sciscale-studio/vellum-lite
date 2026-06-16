@@ -61,14 +61,18 @@ export async function renderMermaidBlocks(
   if (isCancelled()) return;
 
   // Re-query — the DOM may have changed during the await above (theme switch,
-  // re-render, etc.). Mark each block we plan to handle so a parallel pass
-  // skips it.
+  // re-render). The single render effect cancels its predecessor before the
+  // next pass starts, and a cancelled pass bails before writing (the isCancelled
+  // checks below), so two passes never both render the same block. We therefore
+  // do NOT mark blocks "claimed": a claim that leaked when a pass was cancelled
+  // mid-render (after claiming, before writing) left the block skipped forever
+  // by every later pass — that was why diagrams sometimes stayed as raw text on
+  // cold launch (content + theme settling racing the first mermaid import).
   const blocks = Array.from(
     container.querySelectorAll<HTMLElement>(
-      'code.language-mermaid:not([data-mermaid-rendered]):not([data-mermaid-claimed])',
+      'code.language-mermaid:not([data-mermaid-rendered])',
     ),
   );
-  blocks.forEach((b) => b.setAttribute('data-mermaid-claimed', '1'));
 
   for (const codeEl of blocks) {
     if (isCancelled()) return;

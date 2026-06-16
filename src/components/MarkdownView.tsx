@@ -4,8 +4,8 @@ import { convertFileSrc } from '@tauri-apps/api/core';
 import { dirname, resolve } from '@tauri-apps/api/path';
 import { useAppStore } from '../stores/appStore';
 import { tauriCommands } from '../utils/tauriCommands';
-import { rerenderMermaidForTheme } from '../utils/mermaid';
-import { rerenderVegaForTheme } from '../utils/vega';
+import { renderMermaidBlocks, rerenderMermaidForTheme } from '../utils/mermaid';
+import { renderVegaBlocks, rerenderVegaForTheme } from '../utils/vega';
 
 function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -600,13 +600,48 @@ export default function MarkdownView({ loadFile }: MarkdownViewProps) {
     if (!container) return;
     let cancelled = false;
     const isCancelled = () => cancelled;
-    rerenderMermaidForTheme(container, theme, isCancelled).catch((e) => {
-      if (!cancelled) console.error('Mermaid render failed', e);
+    let retryTimer = 0;
+    let attempts = 0;
+
+    const pendingDiagram = () =>
+      container.querySelector(
+        'code.language-mermaid:not([data-mermaid-rendered]), ' +
+        'code.language-vega-lite:not([data-vega-rendered]), ' +
+        'code.language-vega:not([data-vega-rendered])',
+      );
+
+    const renderDiagrams = async (retry: boolean) => {
+      if (cancelled) return;
+      // First pass reverts diagrams drawn under the old theme, then renders.
+      // Retries only fill in blocks a superseded pass missed — no revert, so
+      // already-rendered diagrams are left untouched.
+      if (retry) {
+        await renderMermaidBlocks(container, theme, isCancelled);
+        await renderVegaBlocks(container, theme, isCancelled);
+      } else {
+        await rerenderMermaidForTheme(container, theme, isCancelled);
+        await rerenderVegaForTheme(container, theme, isCancelled);
+      }
+      if (cancelled) return;
+      // Cold launch races content + settings loading against the first (slow)
+      // mermaid/vega chunk import, so the opening pass can be superseded before
+      // it draws. Retry briefly until every diagram block has rendered.
+      if (pendingDiagram() && attempts < 8) {
+        attempts++;
+        retryTimer = window.setTimeout(() => {
+          renderDiagrams(true).catch(() => {});
+        }, 120);
+      }
+    };
+
+    renderDiagrams(false).catch((e) => {
+      if (!cancelled) console.error('Diagram render failed', e);
     });
-    rerenderVegaForTheme(container, theme, isCancelled).catch((e) => {
-      if (!cancelled) console.error('Vega render failed', e);
-    });
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [renderedHTML, theme]);
 
   return (
