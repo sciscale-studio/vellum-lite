@@ -308,23 +308,17 @@ pub fn open_default_apps_settings(_app: AppHandle) -> Result<(), String> {
 /// viewer for the UTIs resolved from the Markdown file extensions.
 #[cfg(target_os = "macos")]
 fn set_default_macos(bundle_id: &str) -> Result<(), String> {
-    let extensions = ["md", "mdx", "markdown"];
-    let mut failures = Vec::new();
-
-    for ext in extensions {
-        if let Err(err) = set_default_macos_extension(ext, bundle_id) {
-            failures.push(format!(".{ext}: {err}"));
-        }
+    // `.md` is the association that matters. `.mdx` / `.markdown` are best-effort:
+    // a niche extension has no system-registered content type (unless our own
+    // UTExportedTypeDeclarations in Info.plist is in effect), and asking
+    // LaunchServices to set a handler for an unregistered / dynamic type returns
+    // OSStatus -50. Don't fail the whole operation — or show the user a scary
+    // red error — when the primary `.md` association succeeded.
+    let primary = set_default_macos_extension("md", bundle_id);
+    for ext in ["mdx", "markdown"] {
+        let _ = set_default_macos_extension(ext, bundle_id);
     }
-
-    if failures.is_empty() {
-        Ok(())
-    } else {
-        Err(format!(
-            "macOS LaunchServices failed to set default app: {}",
-            failures.join("; ")
-        ))
-    }
+    primary.map_err(|err| format!("macOS LaunchServices failed to set .md as the default: {err}"))
 }
 
 #[cfg(target_os = "macos")]

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Merged into the Tauri-generated Info.plist at build time. Declares a UTI
+       for the .mdx extension so macOS treats it as a real content type. Without
+       this, .mdx resolves to a dynamic (dyn.*) UTI and
+       LSSetDefaultRoleHandlerForContentType refuses to set a handler for it
+       (OSStatus -50 -> the "Set as default" error). .md / .markdown already map
+       to the de-facto net.daringfireball.markdown UTI, so only .mdx needs
+       declaring here. -->
+  <key>UTExportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.sciscale.vellum.mdx</string>
+      <key>UTTypeDescription</key>
+      <string>MDX Document</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.plain-text</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>mdx</string>
+        </array>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>
